@@ -1,29 +1,22 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio')
 
-const basePath = `https://myreservations.omnibees.com`;
-let baseUrl = `${basePath}/default.aspx?
-q=5462
-&version=MyReservation
-&sid=32c1c8de-5418-40b2-a237-d86b59345d7c#/
-&diff=false
-&NRooms=1
-&ad=1
-&ch=0
-&ag=-`;
-
-const find = async (checkIn, checkOut) => {
+const getContent = async (checkIn, checkOut) => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    url = baseUrl + `&CheckIn=${checkIn}&CheckOut=${checkOut}`
-    console.log(url)
+    url = process.env.BASE_URL + `&CheckIn=${checkIn}&CheckOut=${checkOut}`
     await page.goto(url);
-    const html = await page.content()
+    const content = await page.content();
+    await browser.close();
+    return content
+}
+
+const buildRooms = (html) => {
     const $ = cheerio.load(html)
     const rooms = [];
 
     $('.roomExcerpt').each((i, elem) => {
-        const image = basePath + $(elem)
+        const image = process.env.BASE_PATH + $(elem)
                                     .first()
                                     .children()
                                     .find('a')
@@ -45,9 +38,23 @@ const find = async (checkIn, checkOut) => {
 
         rooms.push({image,name,description,price})
     });
-
-    await browser.close();
     return rooms
+}
+
+const formatDates = (checkin, checkout) => {
+    let dates = {}
+    if (checkin && checkout) {
+        dates.dtIn = checkin.replace(/\//g, "")
+        dates.dtOut = checkout.replace(/\//g, "")
+    }
+    return dates
+}
+
+const find = async (checkIn, checkOut) => {
+    const {dtIn, dtOut} = formatDates(checkIn, checkOut);
+    const html = await getContent(dtIn, dtOut);
+    const rooms = buildRooms(html);
+    return rooms;
   };
   
   module.exports = {find};

@@ -3,9 +3,8 @@ const search = require('../service/search')
 const router = express.Router();
 
 router.post('/', (req, res) => {
-    const {checkIn, checkOut} = req.body;
-    //res.send(`${checkIn} -> ${checkOut}`);
-    search.find(checkIn, checkOut).then((rooms) => {
+    const {checkin, checkout} = req.body;
+    search.find(checkin, checkout).then((rooms) => {
         res.send(rooms);
     });
     
