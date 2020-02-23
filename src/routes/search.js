@@ -4,8 +4,10 @@ const router = express.Router();
 
 router.post('/', (req, res) => {
     const {user} = req.body;
-    search.find();
-    res.send(`YO ${user.email}`);
+    search.find().then((rooms) => {
+        res.send(rooms);
+    });
+    
 });
 
 module.exports = router;

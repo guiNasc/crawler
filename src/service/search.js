@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio')
 
-
+const basePath = `https://myreservations.omnibees.com`;
 const url = `https://myreservations.omnibees.com/default.aspx?
 q=5462
 &version=MyReservation
@@ -23,17 +23,34 @@ const find = async (Checkin, Checkout) => {
     await page.goto(url);
     const html = await page.content()
     const $ = cheerio.load(html)
+    const rooms = [];
 
-    //const rooms = $('.roomName');
+    $('.roomExcerpt').each((i, elem) => {
+        const image = basePath + $(elem)
+                                    .first()
+                                    .children()
+                                    .find('a')
+                                    .attr('href');
+        const name = $(elem)
+                        .children('.excerpt')
+                        .children('h5')
+                        .text();
 
-    $('.roomName').each((i, elem) => {
-        
+        const description = $(elem)
+                                .children('.excerpt')
+                                .children('p')
+                                .text();
+
+        const price = $(elem)
+                        .children('.sincePrice')
+                        .find('h6')
+                        .text();
+
+        rooms.push({image,name,description,price})
     });
 
-    console.log()
-
-
     await browser.close();
+    return rooms
   };
   
   module.exports = {find};
